@@ -67,6 +67,7 @@ public class CustomerDao {
         }
         return customers;
     }
+  //Methods for validatecustomer
     public Customer validateCustomer(String accountno, String password) {
         try (Connection connection = DBConnection1.getConnection()) {
             String query = "SELECT * FROM customer WHERE account_no =? AND temp_password =?";
@@ -95,7 +96,7 @@ public class CustomerDao {
         }
         return null;
     }
-
+  //Methods for getcustomerdetails
     public Customer getCustomerDetails(String accountNo) {
         try (Connection connection = DBConnection1.getConnection()) {
             String query = "SELECT * FROM customer WHERE account_no =?";
@@ -164,6 +165,7 @@ public class CustomerDao {
 
             return transactions;
         }
+      //Methods for updatecustomer
 
 		public boolean updateCustomer(Customer customer) {
 		    try (Connection connection = DBConnection1.getConnection()) {
@@ -185,7 +187,7 @@ public class CustomerDao {
 		    }
 		    return false;
 		}
-
+		//Methods for getcustomerbyaccno
 		public Customer getCustomerByAccno(String accNo) {
 			try (Connection connection = DBConnection1.getConnection()){
 				String query = "Select * from customer where account_no = ? ";
@@ -212,7 +214,47 @@ public class CustomerDao {
 	        }
 	        return null;
 		}
-		
+		public boolean deleteCustomer(String accountNo) {
+		    Connection connection = null;
+		    try {
+		        connection = DBConnection1.getConnection();
+		        connection.setAutoCommit(false); // Start transaction
+
+		        // Delete related transactions
+		        String deleteTransactionsQuery = "DELETE FROM transaction WHERE account_no = ?";
+		        try (PreparedStatement deleteTransactionsStmt = connection.prepareStatement(deleteTransactionsQuery)) {
+		            deleteTransactionsStmt.setString(1, accountNo);
+		            deleteTransactionsStmt.executeUpdate();
+		        }
+
+		        // Delete customer
+		        String deleteCustomerQuery = "DELETE FROM customer WHERE account_no = ?";
+		        try (PreparedStatement deleteCustomerStmt = connection.prepareStatement(deleteCustomerQuery)) {
+		            deleteCustomerStmt.setString(1, accountNo);
+		            int rowsDeleted = deleteCustomerStmt.executeUpdate();
+		            
+		            connection.commit(); // Commit transaction
+		            return rowsDeleted > 0;
+		        } catch (SQLException e) {
+		            connection.rollback(); // Rollback transaction if any error occurs
+		            e.printStackTrace();
+		            return false;
+		        }
+		    } catch (SQLException e) {
+		        e.printStackTrace();
+		        return false;
+		    } finally {
+		        // Ensure connection is closed in the end
+		        if (connection != null) {
+		            try {
+		                connection.close();
+		            } catch (SQLException e) {
+		                e.printStackTrace();
+		            }
+		        }
+		    }
+		}
+		//Methods for addTransaction
 		public static boolean addTransaction(Transaction transaction) throws SQLException {
 		    String sql = "INSERT INTO transaction (account_no, amount, transaction_type, transaction_date) VALUES (?, ?, ?, ?)";
 		    try (Connection connection = DBConnection1.getConnection();
@@ -229,19 +271,19 @@ public class CustomerDao {
 		        throw e;
 		    }
 		}
-
-		public static void MoneyTransfer(String accountNo, double amount, String transactionType) throws SQLException {
-		    String query = "INSERT INTO transaction (account_no, amount, transaction_type, transaction_date) VALUES (?, ?, ?, ?)";
-		    try (Connection conn = DBConnection1.getConnection();
-		         PreparedStatement stmt = conn.prepareStatement(query)) {
-		        stmt.setString(1, accountNo);
-		        stmt.setDouble(2, amount);
-		        stmt.setString(3, transactionType);
-		        stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
-		        stmt.executeUpdate();
-		    }
-		}
-		
+//Methods for moneytransfer
+//		public static void MoneyTransfer(String accountNo, double amount, String transactionType) throws SQLException {
+//		    String query = "INSERT INTO transaction (account_no, amount, transaction_type, transaction_date) VALUES (?, ?, ?, ?)";
+//		    try (Connection conn = DBConnection1.getConnection();
+//		         PreparedStatement stmt = conn.prepareStatement(query)) {
+//		        stmt.setString(1, accountNo);
+//		        stmt.setDouble(2, amount);
+//		        stmt.setString(3, transactionType);
+//		        stmt.setTimestamp(4, new Timestamp(System.currentTimeMillis()));
+//		        stmt.executeUpdate();
+//		    }
+//		}
+		//Methods for updatepassword		
 		public boolean updatePassword(String accountNo, String newPassword) {
 		    try (Connection connection = DBConnection1.getConnection()) {
 		        String query = "UPDATE Customer SET temp_password = ? WHERE account_no = ?";

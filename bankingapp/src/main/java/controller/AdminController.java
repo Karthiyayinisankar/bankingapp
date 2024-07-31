@@ -65,9 +65,18 @@ public class AdminController extends HttpServlet {
             } else {
                 response.sendRedirect("adminDashboard.jsp?error=UpdateFailed");
             }
-        }
-        }
  
+        } else if ("delete".equals(action)) {
+        String accountNo = request.getParameter("accountNo");
+        if (customerDao.deleteCustomer(accountNo)) {
+            response.sendRedirect("adminDashboard.jsp?success=CustomerDeleted");
+        } 
+        else {
+            response.sendRedirect("adminDashboard.jsp?error=DeleteFailed");
+        }
+        }
+    }
+
         
         // Implement update, d
 
